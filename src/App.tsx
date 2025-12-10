@@ -1,21 +1,20 @@
-//import { useState } from 'react'
-//import reactLogo from './assets/react.svg'
-//import viteLogo from '/vite.svg'
 import './App.css'
-import { Grid } from '@mui/material';
-import HeaderUI from './components/HeaderUI';
-import AlertUI from './components/AlertUI';
+import { Grid } from '@mui/material'
+import HeaderUI from './components/HeaderUI'
+import AlertUI from './components/AlertUI'
 import SelectorUI from './components/SelectorUI'
-import IndicatorUI from './components/IndicatorUI';
+import IndicatorUI from './components/IndicatorUI'
 import useFetchData from './functions/useFetchData';
-import TableUI from './components/TableUI';
-import ChartUI from './components/ChartUI';
-
+import TableUI from './components/TableUI'; 
+import ChartUI from './components/ChartUI'; 
+import { useState } from 'react'
 
 function App() {
 
-  const {data,loading,error} = useFetchData();
 
+  const [selectedOption, setSelectedOption] = useState<string>("Guayaquil");
+  const {data,loading,error} = useFetchData(selectedOption);
+  
   return (
     <Grid container spacing={5} justifyContent="center" alignItems="center">
 
@@ -32,7 +31,7 @@ function App() {
 
       {/* Selector */}
       <Grid size={{ xs: 12, md: 3  }}>
-        <SelectorUI/>
+        <SelectorUI onOptionSelect={setSelectedOption}/>
 
       </Grid>
 
@@ -72,7 +71,7 @@ function App() {
                 title='Velocidad del viento'
                 description={`${data.current.wind_speed_10m} ${data.current_units.wind_speed_10m}`}
               />
-            </Grid>
+            </Grid> 
 
             <Grid size={{ xs: 12, md: 3 }}>
               <IndicatorUI
@@ -88,13 +87,13 @@ function App() {
 
       {/* Gráfico */}
       <Grid size={{ xs: 6, md: 6 }} sx={{ display: { xs: "none", md: "block" } }}>
-      <ChartUI />
+        <ChartUI data={data} loading={loading} error={error}/>
       </Grid>
 
-     {/* Tabla */}
-     <Grid size={{ xs: 6, md: 6 }} sx={{ display: { xs: "none", md: "block" } }}>
-     <TableUI />
-     </Grid>
+      {/* Tabla */}
+      <Grid size={{ xs: 6, md: 6 }} sx={{ display: { xs: "none", md: "block" } }}>
+        <TableUI data={data} loading={loading} error={error}/>
+      </Grid>
 
       {/* Información adicional */}
       <Grid>Elemento: Información adicional</Grid>
