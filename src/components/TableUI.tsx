@@ -1,5 +1,8 @@
 import Box from '@mui/material/Box';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
+import CircularProgress from '@mui/material/CircularProgress';
+import Typography from '@mui/material/Typography';
+import { type OpenMeteoResponse } from "../types/DashboardTypes";
 
 function combineArrays(arrLabels: Array<string>, arrValues1: Array<number>, arrValues2: Array<number>) {
    return arrLabels.map((label, index) => ({
@@ -12,37 +15,47 @@ function combineArrays(arrLabels: Array<string>, arrValues1: Array<number>, arrV
 
 const columns: GridColDef[] = [
    { field: 'id', headerName: 'ID', width: 90 },
-   {
-      field: 'label',
-      headerName: 'Label',
-      width: 125,
-   },
-   {
-      field: 'value1',
-      headerName: 'Value 1',
-      width: 125,
-   },
-   {
-      field: 'value2',
-      headerName: 'Value 2',
-      width: 125,
-   },
+   { field: 'label', headerName: 'Hora', width: 125 },
+   { field: 'value1', headerName: 'Temperatura (°C)', width: 125 },
+   { field: 'value2', headerName: 'Viento (km/h)', width: 125 },
    {
       field: 'resumen',
       headerName: 'Resumen',
-      description: 'No es posible ordenar u ocultar esta columna.',
       sortable: false,
       hideable: false,
-      width: 100,
-      valueGetter: (_, row) => `${row.label || ''} ${row.value1 || ''} ${row.value2 || ''}`,
+      width: 200,
+      valueGetter: (_, row) =>
+         `${row.label || ''} - ${row.value1 || ''}°C - ${row.value2 || ''}km/h`,
    },
 ];
 
-const arrValues1 = [4000, 3000, 2000, 2780, 1890, 2390, 3490];
-const arrValues2 = [2400, 1398, 9800, 3908, 4800, 3800, 4300];
-const arrLabels = ['A','B','C','D','E','F','G'];
+interface TableUIProps {
+  data: OpenMeteoResponse | null;
+  loading: boolean;
+  error: string;
+}
 
-export default function TableUI() {
+export default function TableUI({ data, loading, error }: TableUIProps) {
+
+   if (loading) {
+      return (
+         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 350 }}>
+            <CircularProgress />
+         </Box>
+      );
+   }
+
+   if (error || !data?.hourly) {
+      return <Typography color="error">Error al cargar datos climáticos.</Typography>;
+   }
+
+   const arrLabels = data.hourly.time.slice(0, 24).map(time => {
+      const date = new Date(time);
+      return date.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
+   });
+
+   const arrValues1 = data.hourly.temperature_2m.slice(0, 24);
+   const arrValues2 = data.hourly.wind_speed_10m.slice(0, 24);
 
    const rows = combineArrays(arrLabels, arrValues1, arrValues2);
 
@@ -53,9 +66,7 @@ export default function TableUI() {
             columns={columns}
             initialState={{
                pagination: {
-                  paginationModel: {
-                     pageSize: 5,
-                  },
+                  paginationModel: { pageSize: 5 },
                },
             }}
             pageSizeOptions={[5]}
